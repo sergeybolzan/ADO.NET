@@ -11,47 +11,29 @@ namespace TestOleDb
     {
         static void Main(string[] args)
         {
-            // -OleDb- SQL
-            OleDbConnection connect = new OleDbConnection(); // можно через using
-            try
+            using (OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=c:\Bolzan\Study\GitHub\ADO.NET\med.mdb"))
             {
-                connect.ConnectionString = @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=D:\Bol\DT\med.mdb";
-                //connect.StateChange += connect_StateChange; == лямбда
                 connect.StateChange += (os, ea) => { Console.WriteLine(ea.CurrentState); };
                 connect.Open();
-                //Console.WriteLine(connect.State);
+                OleDbCommand command = new OleDbCommand(@"SELECT * FROM Patients", connect);
+                OleDbDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Console.WriteLine("{0}. {1} {2} - {3}", reader["patientID"], reader["patientFirstName"], reader["patientName"], reader["patientBirthDate"]);
+                }
+                reader.Close();
 
-                OleDbCommand cmdSelect = new OleDbCommand()
+                Console.WriteLine();
+
+                command.CommandText = @"SELECT * FROM Doctors";
+                reader = command.ExecuteReader();
+                while (reader.Read())
                 {
-                    Connection = connect,
-                    CommandText = @"SELECT doctorName, doctorProfession FROM Doctors"
-                };
-                OleDbDataReader reader = cmdSelect.ExecuteReader();
-                while(reader.Read())
-                {
-                    Console.WriteLine("{0} {1}", reader[0], reader[1]);
-                    //Console.WriteLine("{0} {1}", reader["doctorName"], reader["doctorProfession"]);
+                    Console.WriteLine("{0}. {1} {2} - {3}", reader["doctorID"], reader["doctorFirstName"], reader["doctorName"], reader["doctorProfession"]);
                 }
 
-
-
-
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                connect.Close();
-            }
-
             Console.ReadKey();
         }
-
-        //static void connect_StateChange(object sender, System.Data.StateChangeEventArgs e)
-        //{
-        //    Console.WriteLine(e.CurrentState);
-        //}
     }
 }
