@@ -31,6 +31,16 @@ namespace TestOleDb
                 {
                     Console.WriteLine("{0}. {1} {2} - {3}", reader["doctorID"], reader["doctorFirstName"], reader["doctorName"], reader["doctorProfession"]);
                 }
+                reader.Close();
+
+                command.CommandText = @"SELECT patientName, doctorName FROM Patients INNER JOIN Visits ON Patients.patientID = Visits.visitPatient INNER JOIN Doctors ON Doctors.doctorID = Visits.visitDoctor";
+                reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Console.WriteLine("{0} {1}", reader["patientName"], reader["doctorName"]);
+                }
+                reader.Close();
+
 
             }
             Console.ReadKey();
