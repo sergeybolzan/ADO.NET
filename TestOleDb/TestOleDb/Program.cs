@@ -14,7 +14,7 @@ namespace TestOleDb
             //using (OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=d:\Study\GitHub\ADO.NET\med.mdb"))
             try
             {
-                OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=../../../\med.mdb");
+                OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=../../../med.mdb");
                 connect.StateChange += (os, ea) => { Console.WriteLine(ea.CurrentState); };
                 connect.Open();
                 OleDbCommand command = new OleDbCommand(@"SELECT * FROM Patients", connect);
