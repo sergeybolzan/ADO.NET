@@ -9,9 +9,6 @@ namespace DZ2
 {
     class Program
     {
-        //запрос о заказах клиентов - данные о клиенте (имя компании, контактное имя, адрес, город, страна, телефон), 
-        //данные о заказе (дата заказа, дата поставки, стоимость перевозки, адрес поставки (город, страна, регион)), 
-        //дополнительные данные о заказе (цена, количество, стоимость);
         static void Main(string[] args)
         {
             SqlConnection connection = new SqlConnection();
@@ -20,13 +17,67 @@ namespace DZ2
                 connection.ConnectionString = @"Data Source=(LocalDB)\v11.0;Initial Catalog=Northwind;Integrated Security=True";
                 connection.Open();
 
-                SqlCommand command = new SqlCommand("select companyname, contactname, address, city, country, phone from customers", connection);
+                SqlCommand command = new SqlCommand("SELECT companyname, contactname, address, city, country, phone, orderdate, shippeddate, freight, shipcountry, shipcity, shipregion, UnitPrice, Quantity FROM Customers JOIN Orders ON Customers.customerID = Orders.customerID JOIN [Order Details] ON Orders.OrderID = [Order Details].OrderID", connection);
                 SqlDataReader reader = command.ExecuteReader();
                 while (reader.Read() != false)
                 {
-                    Console.WriteLine("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10}", reader[0], reader[1], reader[2], reader[3], reader[4], reader[5]);
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        Console.Write(reader[i] + " ");
+                    }
+                    Console.WriteLine("\n");
                 }
+                reader.Close();
 
+
+
+                Console.WriteLine("\n\n\n\n");
+
+
+
+                command = new SqlCommand("SELECT ProductName, UnitPrice, QuantityPerUnit, CategoryName FROM Products JOIN Categories ON Products.CategoryID = Categories.CategoryID WHERE UnitPrice BETWEEN 10 AND 60 AND ReorderLevel > 0", connection);
+                reader = command.ExecuteReader();
+                while (reader.Read() != false)
+                {
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        Console.Write(reader[i] + " ");
+                    }
+                    Console.WriteLine();
+                }
+                reader.Close();
+
+
+
+                Console.WriteLine("\n\n\n\n");
+
+
+
+                command = new SqlCommand("SELECT City, COUNT(City) FROM Customers GROUP BY City", connection);
+                reader = command.ExecuteReader();
+                while (reader.Read() != false)
+                {
+                    Console.WriteLine("город: {0}, количество клиентов: {1}", reader[0], reader[1]);
+                }
+                reader.Close();
+
+
+
+                Console.WriteLine("\n\n\n\n");
+
+
+
+                command = new SqlCommand("SELECT CompanyName, City, Country, OrderDate, SUM(UnitPrice) FROM Customers JOIN Orders ON Customers.CustomerID = Orders.CustomerID JOIN [Order Details] ON Orders.OrderID = [Order Details].OrderID GROUP BY CompanyName, City, Country, OrderDate", connection);
+                reader = command.ExecuteReader();
+                while (reader.Read() != false)
+                {
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        Console.Write(reader[i] + " ");
+                    }
+                    Console.WriteLine();
+                }
+                reader.Close();
 
 
 
