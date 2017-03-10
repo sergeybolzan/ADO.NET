@@ -11,8 +11,10 @@ namespace TestOleDb
     {
         static void Main(string[] args)
         {
-            using (OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=c:\Bolzan\Study\GitHub\ADO.NET\med.mdb"))
+            //using (OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=d:\Study\GitHub\ADO.NET\med.mdb"))
+            try
             {
+                OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=../../../med.mdb");
                 connect.StateChange += (os, ea) => { Console.WriteLine(ea.CurrentState); };
                 connect.Open();
                 OleDbCommand command = new OleDbCommand(@"SELECT * FROM Patients", connect);
@@ -40,8 +42,11 @@ namespace TestOleDb
                     Console.WriteLine("{0} {1}", reader["patientName"], reader["doctorName"]);
                 }
                 reader.Close();
+            }
 
-
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
             Console.ReadKey();
         }
