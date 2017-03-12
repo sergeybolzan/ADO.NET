@@ -9,44 +9,55 @@ namespace TestOleDb
 {
     class Program
     {
+        static void RunQuery(OleDbConnection connection, string cmdText)
+        {
+            OleDbCommand command = new OleDbCommand(cmdText, connection);
+            OleDbDataReader reader = command.ExecuteReader();
+            while (reader.Read() != false)
+            {
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    Console.Write(reader[i] + " ");
+                }
+                Console.WriteLine();
+            }
+            reader.Close();
+        }
         static void Main(string[] args)
         {
-            //using (OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=d:\Study\GitHub\ADO.NET\med.mdb"))
+            OleDbConnection connect = new OleDbConnection();
             try
             {
-                OleDbConnection connect = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=../../../med.mdb");
+                connect.ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=../../../med.mdb";
                 connect.StateChange += (os, ea) => { Console.WriteLine(ea.CurrentState); };
                 connect.Open();
-                OleDbCommand command = new OleDbCommand(@"SELECT * FROM Patients", connect);
-                OleDbDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    Console.WriteLine("{0}. {1} {2} - {3}", reader["patientID"], reader["patientFirstName"], reader["patientName"], reader["patientBirthDate"]);
-                }
-                reader.Close();
 
-                Console.WriteLine();
+                Console.WriteLine("Полная информация о пациентах больницы:");
+                RunQuery(connect, "SELECT * FROM Patients");
 
-                command.CommandText = @"SELECT * FROM Doctors";
-                reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    Console.WriteLine("{0}. {1} {2} - {3}", reader["doctorID"], reader["doctorFirstName"], reader["doctorName"], reader["doctorProfession"]);
-                }
-                reader.Close();
+                Console.WriteLine("\nПолная информация о врачах в больницы:");
+                RunQuery(connect, "SELECT * FROM Doctors");
 
-                command.CommandText = @"SELECT patientName, doctorName FROM Patients INNER JOIN Visits ON Patients.patientID = Visits.visitPatient INNER JOIN Doctors ON Doctors.doctorID = Visits.visitDoctor";
-                reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    Console.WriteLine("{0} {1}", reader["patientName"], reader["doctorName"]);
-                }
-                reader.Close();
+                Console.WriteLine("\nСписок пациентов с указанием их лечащих врачей:");
+                RunQuery(connect, "SELECT patientName, doctorName FROM (Patients INNER JOIN Visits ON Patients.patientID = Visits.visitPatient) INNER JOIN Doctors ON Doctors.doctorID = Visits.visitDoctor");
+
+                Console.WriteLine("\nВывести информацию о стоимостях посещений пациентами врачей (фамилия пациента, фамилия врача, стоимость):");
+                RunQuery(connect, "SELECT Patients.patientName, Doctors.doctorName, VisitCosts.visitCostValue FROM (((Patients INNER JOIN Visits ON Patients.patientID = Visits.visitPatient) INNER JOIN Doctors ON Doctors.doctorID = Visits.visitDoctor) INNER JOIN VisitCosts ON Visits.visitID = VisitCosts.visitCostID)");
+
+                Console.WriteLine("\nВывести информацию о поставленных диагнозах за период (фамилия врача, диагноз, дата):");
+                RunQuery(connect, "SELECT Doctors.doctorName, Visits.visitComment, VisitCosts.visitCostTill FROM ((Doctors INNER JOIN Visits ON Doctors.doctorID = Visits.visitDoctor) INNER JOIN VisitCosts ON Visits.visitID = VisitCosts.visitCostID)");
+
+                Console.WriteLine("\nВывести информацию о самом дорогом визите к врачу (фамилия пациента, фамилия врача, стоимость):");
+                RunQuery(connect, "SELECT Patients.patientName, Doctors.doctorName, MAX(VisitCosts.visitCostValue) AS Expr1 FROM (((Doctors INNER JOIN Visits ON Doctors.doctorID = Visits.visitDoctor) INNER JOIN Patients ON Visits.visitPatient = Patients.patientID) INNER JOIN VisitCosts ON Visits.visitID = VisitCosts.visitCostID) GROUP BY Patients.patientName, Doctors.doctorName");
+
             }
-
             catch(Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                connect.Close();
             }
             Console.ReadKey();
         }
