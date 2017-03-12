@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestOleDb
+namespace DZ1
 {
     class Program
     {
