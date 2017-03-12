@@ -28,7 +28,7 @@ namespace TestOleDb
             OleDbConnection connect = new OleDbConnection();
             try
             {
-                connect.ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=../../../med.mdb";
+                connect.ConnectionString = @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=../../../med.mdb";
                 connect.StateChange += (os, ea) => { Console.WriteLine(ea.CurrentState); };
                 connect.Open();
 
@@ -48,8 +48,13 @@ namespace TestOleDb
                 RunQuery(connect, "SELECT Doctors.doctorName, Visits.visitComment, VisitCosts.visitCostTill FROM ((Doctors INNER JOIN Visits ON Doctors.doctorID = Visits.visitDoctor) INNER JOIN VisitCosts ON Visits.visitID = VisitCosts.visitCostID)");
 
                 Console.WriteLine("\nВывести информацию о самом дорогом визите к врачу (фамилия пациента, фамилия врача, стоимость):");
-                RunQuery(connect, "SELECT Patients.patientName, Doctors.doctorName, MAX(VisitCosts.visitCostValue) AS Expr1 FROM (((Doctors INNER JOIN Visits ON Doctors.doctorID = Visits.visitDoctor) INNER JOIN Patients ON Visits.visitPatient = Patients.patientID) INNER JOIN VisitCosts ON Visits.visitID = VisitCosts.visitCostID) GROUP BY Patients.patientName, Doctors.doctorName");
+                RunQuery(connect, "SELECT Patients.patientName, Doctors.doctorName, VisitCosts.visitCostValue FROM (((VisitCosts LEFT OUTER JOIN Visits ON VisitCosts.visitCostID = Visits.visitID) LEFT OUTER JOIN Patients ON Patients.patientID = Visits.visitPatient) LEFT OUTER JOIN Doctors ON Doctors.doctorID = Visits.visitDoctor) WHERE (VisitCosts.visitCostValue = (SELECT MAX(visitCostValue) AS Expr1 FROM VisitCosts VisitCosts_1))");
 
+                Console.WriteLine("\nВывести информацию о количестве пациентов каждого врача (фамилия врача и количество пациентов):");
+                RunQuery(connect, "SELECT A.doctorName, COUNT(B.visitPatient) AS Expr1 FROM (Doctors A LEFT OUTER JOIN (SELECT DISTINCT visitDoctor, visitPatient FROM Visits) B ON A.doctorID = B.visitDoctor) GROUP BY A.doctorName");
+
+                Console.WriteLine("\nВывести информацию о суммарной стоимости посещений каждого врача (фамилия врача и сумма):");
+                RunQuery(connect, "SELECT Doctors.doctorName, SUM(VisitCosts.visitCostValue) AS Expr1 FROM ((Doctors LEFT OUTER JOIN Visits ON Doctors.doctorID = Visits.visitDoctor) LEFT OUTER JOIN VisitCosts ON Visits.visitID = VisitCosts.visitCostID) GROUP BY Doctors.doctorName");
             }
             catch(Exception e)
             {
